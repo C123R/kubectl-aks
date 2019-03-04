@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	container "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -61,6 +60,7 @@ func NewSessionFromFile() (*AzureSession, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't initialize authorizer: %v", err)
 	}
+
 	authInfo, err := ReadJSON(os.Getenv("AZURE_AUTH_LOCATION"))
 	if err != nil {
 		return nil, fmt.Errorf("can't get auth file: %v", err)
@@ -74,24 +74,6 @@ func NewSessionFromFile() (*AzureSession, error) {
 	return &sess, nil
 }
 
-// GetGroups returns list of Azure Resource Group
-func GetGroups(sess *AzureSession) ([]string, error) {
-	tab := make([]string, 0)
-	var err error
-
-	grClient := resources.NewGroupsClient(sess.SubscriptionID)
-	grClient.Authorizer = sess.Authorizer
-
-	for list, err := grClient.ListComplete(context.Background(), "", nil); list.NotDone(); err = list.Next() {
-		if err != nil {
-			return nil, errors.Wrap(err, "error traverising RG list")
-		}
-		rgName := *list.Value().Name
-		tab = append(tab, rgName)
-	}
-	return tab, err
-}
-
 // ListAKS returns list of AKS clusters in resource group
 func (a *AksCluster) ListAKS(sess *AzureSession) (map[string]AksCluster, error) {
 
@@ -102,7 +84,7 @@ func (a *AksCluster) ListAKS(sess *AzureSession) (map[string]AksCluster, error) 
 
 	for list, err := crClient.ListComplete(context.Background()); list.NotDone(); err = list.Next() {
 		if err != nil {
-			return mapOfAKSCluster, errors.Wrap(err, "error traverising AKS list")
+			return mapOfAKSCluster, fmt.Errorf("error get the list of aks clusters: %v", err)
 		}
 
 		clusterName := *list.Value().Name

@@ -1,4 +1,4 @@
-// Copyright © 2019 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2019 NAME HERE cizer.ciz@gmail.com
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/briandowns/spinner"
 	"github.com/kubectl-aks/util"
 	"github.com/spf13/cobra"
 	"os"
+	"time"
 )
 
 // listCmd represents the list command
@@ -26,42 +28,35 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List AKS cluster from the current Azure Subscrption",
 	Long:  "",
-	Run:   list,
+	RunE:  list,
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func list(cmd *cobra.Command, args []string) {
+func list(cmd *cobra.Command, args []string) error {
 
 	sess, err := util.NewSessionFromFile()
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%v", err)
 	}
+	s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
+	s.Start()
+	s.Prefix = fmt.Sprintf("Getting List of AKS clusters for your current Subscription")
+	s.FinalMSG = fmt.Sprintf("%v\t\t\t%v\t\t%v\n", "NAME", "VERSION", "RESOURCE GROUP")
 
 	var akslist util.AksCluster
 	aksList, err := akslist.ListAKS(sess)
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%v", err)
 	}
-
-	fmt.Fprintf(os.Stdout, "%v\t\t\t%v\t\t%v\t\n", "NAME", "KUBERNETES VERSION", "RESOURCE GROUP")
+	s.Stop()
 	for key, value := range aksList {
 
-		fmt.Fprintf(os.Stdout, "%v\t\t%v\t\t\t\t%v\t\n", key, value.K8sVersion, value.ResourceGroup)
+		fmt.Fprintf(os.Stdout, "%v\t\t%v\t\t%v\n", key, value.K8sVersion, value.ResourceGroup)
 	}
+
+	return err
 
 }

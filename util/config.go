@@ -60,7 +60,7 @@ func GetAKS(sess *AzureSession, name string) (string, error) {
 	aksList, err := akslist.ListAKS(sess)
 
 	if _, ok := aksList[name]; !ok {
-		return kubeconfig, fmt.Errorf("invalid cluster name(%v), use `kubectl aks list` to get the correct list", name)
+		return kubeconfig, fmt.Errorf("invalid cluster name (%v), use `kubectl aks list` to get the correct list", name)
 	}
 
 	crClient := container.NewManagedClustersClient(sess.SubscriptionID)
@@ -215,16 +215,16 @@ func ManageConfig(config string, path string) error {
 	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 
-		return fmt.Errorf("Provided path does not exist,\"%v\"", err)
+		return fmt.Errorf("Default/Provided path does not exist,\"%v\"", err)
 	}
-
 	file, _ := ioutil.TempFile("/tmp", "temp")
+
+	// Delete temp file
 	defer os.Remove(file.Name())
 
 	tempFile := file.Name()
-
-	// the WriteFile method returns an error if unsuccessful
-	err = ioutil.WriteFile(tempFile, []byte(config), 0644)
+	// Write Kubernetes configuration for requested cluster in temporary file
+	err = ioutil.WriteFile(tempFile, []byte(config), 0600)
 	file.Sync()
 	// handle this error
 	if err != nil {
@@ -232,9 +232,9 @@ func ManageConfig(config string, path string) error {
 		fmt.Println(err)
 	}
 
+	// Merge configuration of temporary file with existing kubernetes configuration (default: ~/.kube/config)
 	configFile, err := mergeConfig(tempFile, path)
-
-	err = ioutil.WriteFile(path, configFile, 0644)
+	err = ioutil.WriteFile(path, configFile, 0600)
 	if err != nil {
 		fmt.Println(err)
 	}

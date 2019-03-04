@@ -1,4 +1,4 @@
-// Copyright © 2019 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2019 NAME HERE cizer.ciz@gmail.com
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package cmd
 import (
 	"fmt"
 	"github.com/kubectl-aks/util"
-	//	"github.com/mitchellh/go-homedir"
-	log "github.com/sirupsen/logrus"
+	"github.com/mitchellh/go-homedir"
+	//	log "github.com/sirupsen/logrus"
+	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
+	"time"
 )
 
 // name Flag to accept cluster name
@@ -50,8 +52,7 @@ func init() {
 
 	rootCmd.AddCommand(getCmd)
 
-	//defaultConfig, _ := homedir.Expand("~/.kube/config")
-	defaultConfig := "/Users/zocperei/gocode/src/github.com/kubectl-aks/.kube/config"
+	defaultConfig, _ := homedir.Expand("~/.kube/config")
 	getCmd.Flags().StringVarP(&name, "name", "n", "", "Name of the AKS Cluster (required)")
 	getCmd.MarkFlagRequired("name")
 	getCmd.Flags().StringVarP(&path, "path", "p", defaultConfig, "Path to write Kubeconfig")
@@ -60,11 +61,15 @@ func init() {
 
 func get(cmd *cobra.Command, args []string) error {
 
-	log.Infof("Getting credentials for AKS cluster \"%v\"\n", name)
 	sess, err := util.NewSessionFromFile()
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
+	s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
+	s.Start()
+	s.Prefix = fmt.Sprintf("Getting credentials for AKS cluster \"%v\"", name)
+	s.FinalMSG = fmt.Sprintf("Merged \"%v\" as current context in %v\n", name, path)
+
 	kubeconfig, err := util.GetAKS(sess, name)
 	if err != nil {
 		return fmt.Errorf("%v", err)
@@ -73,7 +78,7 @@ func get(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("Successfully merged credentials for AKS cluster \"%v\" with Kubernetes Config at %v\n", name, path)
+	s.Stop()
 	return err
 
 }
