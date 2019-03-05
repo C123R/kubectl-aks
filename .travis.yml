@@ -8,6 +8,7 @@ go:
 go_import_path: github.com/
 before_install:
 - go get -u github.com/golang/dep/cmd/dep
+- go vet ./...
 script:
 - make dep
 - make
