@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/C123R/kubectl-aks.svg?branch=master)](https://travis-ci.org/kairen/kubectl-config-merge)
+[![Build Status](https://travis-ci.org/C123R/kubectl-aks.svg?branch=master)](https://travis-ci.org/C123R/kubectl-aks)
 
 
 # kubectl-aks
