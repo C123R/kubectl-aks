@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/C123R/kubectl-aks.svg?branch=master)](https://travis-ci.org/kairen/kubectl-config-merge)
+
+
 # kubectl-aks
 This is a kubectl plugin to manage Azure Kubernetes Service.
 
