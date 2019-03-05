@@ -15,7 +15,7 @@
 
 package main
 
-import "github.com/kubectl-aks/cmd"
+import "github.com/C123R/kubectl-aks/cmd"
 
 func main() {
 	cmd.Execute()

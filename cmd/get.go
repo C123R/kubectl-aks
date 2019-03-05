@@ -16,7 +16,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/kubectl-aks/util"
+	"github.com/C123R/kubectl-aks/util"
 	"github.com/mitchellh/go-homedir"
 	"os"
 	//	log "github.com/sirupsen/logrus"
