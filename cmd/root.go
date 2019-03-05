@@ -29,10 +29,17 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "aks",
 	Short: "Manage Kubernetes Clusters from Kubectl.",
-	Long:  "",
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Long: `
+The AKS plugin is use to get the credentials of the Kubernetes cluster using kubectl CLI.
+
+NOTE: You need azure auth file t
+
+For example:
+
+	$ kubectl aks get -n foo-cluster
+
+	You can get the list of AKS cluster in Azure Subscription using "kubectl aks list".
+`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

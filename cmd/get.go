@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kubectl-aks/util"
 	"github.com/mitchellh/go-homedir"
+	"os"
 	//	log "github.com/sirupsen/logrus"
 	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
@@ -51,7 +52,6 @@ For example:
 func init() {
 
 	rootCmd.AddCommand(getCmd)
-
 	defaultConfig, _ := homedir.Expand("~/.kube/config")
 	getCmd.Flags().StringVarP(&name, "name", "n", "", "Name of the AKS Cluster (required)")
 	getCmd.MarkFlagRequired("name")
@@ -68,14 +68,17 @@ func get(cmd *cobra.Command, args []string) error {
 	s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
 	s.Start()
 	s.Prefix = fmt.Sprintf("Getting credentials for AKS cluster \"%v\"", name)
+	s.Writer = os.Stderr
 	s.FinalMSG = fmt.Sprintf("Merged \"%v\" as current context in %v\n", name, path)
 
 	kubeconfig, err := util.GetAKS(sess, name)
 	if err != nil {
+		fmt.Println()
 		return fmt.Errorf("%v", err)
 	}
 	err = util.ManageConfig(kubeconfig, path)
 	if err != nil {
+		fmt.Println()
 		return err
 	}
 	s.Stop()

@@ -50,6 +50,20 @@ type Users struct {
 	Name string `yaml:"name"`
 }
 
+// AksCluster is an object representing details for AKS cluster
+type AksCluster struct {
+	ResourceGroup string
+	K8sVersion    string
+}
+
+func makeMapOfCluster(rg string, version string) AksCluster {
+
+	return AksCluster{
+		ResourceGroup: rg,
+		K8sVersion:    version,
+	}
+}
+
 // GetAKS returns list of AKS clusters in resource group
 func GetAKS(sess *AzureSession, name string) (string, error) {
 
@@ -209,10 +223,6 @@ func mergeUsers(temp *KubernertesConfig, existing *KubernertesConfig) {
 func ManageConfig(config string, path string) error {
 
 	var err error
-	if path == "-" {
-		fmt.Println(config)
-		return nil
-	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 
 		return fmt.Errorf("Default/Provided path does not exist,\"%v\"", err)
@@ -240,4 +250,28 @@ func ManageConfig(config string, path string) error {
 	}
 
 	return err
+}
+
+// ListAKS returns list of AKS clusters in resource group
+func (a *AksCluster) ListAKS(sess *AzureSession) (map[string]AksCluster, error) {
+
+	mapOfAKSCluster := make(map[string]AksCluster)
+	var err error
+	crClient := container.NewManagedClustersClient(sess.SubscriptionID)
+	crClient.Authorizer = sess.Authorizer
+
+	for list, err := crClient.ListComplete(context.Background()); list.NotDone(); err = list.Next() {
+		if err != nil {
+			return mapOfAKSCluster, fmt.Errorf("error get the list of aks clusters: %v", err)
+		}
+
+		clusterName := *list.Value().Name
+		rg := strings.Split(*list.Value().NodeResourceGroup, "_")[1]
+		version := *list.Value().KubernetesVersion
+
+		mapOfAKSCluster[clusterName] = makeMapOfCluster(rg, version)
+
+	}
+	return mapOfAKSCluster, err
+
 }
