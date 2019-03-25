@@ -4,64 +4,17 @@ import (
 	"context"
 	"fmt"
 	container "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"strings"
 )
-
-// KubernertesConfig struct
-type KubernertesConfig struct {
-	APIVersion     string     `yaml:"apiVersion"`
-	Clusters       []Clusters `yaml:"clusters"`
-	Contexts       []Contexts `yaml:"contexts"`
-	CurrentContext string     `yaml:"current-context"`
-	Kind           string     `yaml:"kind"`
-	Preferences    struct {
-	} `yaml:"preferences"`
-	Users []Users `yaml:"users"`
-}
-
-// Clusters config
-type Clusters struct {
-	Cluster struct {
-		CertificateAuthorityData string `yaml:"certificate-authority-data"`
-		Server                   string `yaml:"server"`
-	} `yaml:"cluster"`
-	Name string `yaml:"name"`
-}
-
-// Contexts config
-type Contexts struct {
-	Context struct {
-		Cluster string `yaml:"cluster"`
-		User    string `yaml:"user"`
-	} `yaml:"context"`
-	Name string `yaml:"name"`
-}
-
-// Users config
-type Users struct {
-	User struct {
-		ClientCertificateData string `yaml:"client-certificate-data"`
-		ClientKeyData         string `yaml:"client-key-data"`
-		Token                 string `yaml:"token"`
-	} `yaml:"user"`
-	Name string `yaml:"name"`
-}
 
 // AksCluster is an object representing details for AKS cluster
 type AksCluster struct {
 	ResourceGroup string
 	K8sVersion    string
-}
-
-func makeMapOfCluster(rg string, version string) AksCluster {
-
-	return AksCluster{
-		ResourceGroup: rg,
-		K8sVersion:    version,
-	}
 }
 
 // GetAKS returns list of AKS clusters in resource group
@@ -90,132 +43,35 @@ func GetAKS(sess *AzureSession, name string) (string, error) {
 
 }
 
-func unmarshalYaml(path string) (*KubernertesConfig, error) {
+// ListAKS returns list of AKS clusters in resource group
+func (a *AksCluster) ListAKS(sess *AzureSession) (map[string]AksCluster, error) {
 
-	var k8sconfig KubernertesConfig
+	mapOfAKSCluster := make(map[string]AksCluster)
+	var err error
+	crClient := container.NewManagedClustersClient(sess.SubscriptionID)
+	crClient.Authorizer = sess.Authorizer
 
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		fmt.Println(err)
-	}
-	_ = yaml.Unmarshal(data, &k8sconfig)
-
-	return &k8sconfig, err
-}
-
-func mergeConfig(temp string, existing string) ([]byte, error) {
-
-	var file []byte
-	existingFile, err := unmarshalYaml(existing)
-	if err != nil {
-		return file, fmt.Errorf("error: %v", err)
-	}
-	tempFile, err := unmarshalYaml(temp)
-	if err != nil {
-		return file, fmt.Errorf("error: %v", err)
-	}
-
-	for _, ctx := range tempFile.Contexts {
-		if strings.HasPrefix(ctx.Context.User, "clusterAdmin") {
-			adminName := fmt.Sprintf("%v-admin", ctx.Name)
-			tempFile.CurrentContext, ctx.Name = adminName, adminName
+	for list, err := crClient.ListComplete(context.Background()); list.NotDone(); err = list.Next() {
+		if err != nil {
+			return mapOfAKSCluster, fmt.Errorf("error get the list of aks clusters: %v", err)
 		}
-	}
-	if tempFile.APIVersion == "" {
-		return file, fmt.Errorf("Failed to configuration from %v", temp)
+
+		clusterName := *list.Value().Name
+		rg := strings.Split(*list.Value().NodeResourceGroup, "_")[1]
+		version := *list.Value().KubernetesVersion
+
+		mapOfAKSCluster[clusterName] = makeMapOfCluster(rg, version)
 
 	}
-	if existingFile.APIVersion == "" {
-		existingFile = tempFile
-	} else {
-
-		mergeClusters(tempFile, existingFile)
-		mergeContexts(tempFile, existingFile)
-		mergeUsers(tempFile, existingFile)
-
-		existingFile.CurrentContext = tempFile.CurrentContext
-	}
-
-	file, err = yaml.Marshal(existingFile)
-
-	return file, err
-}
-
-func mergeClusters(temp *KubernertesConfig, existing *KubernertesConfig) {
-
-	if len(temp.Clusters) != 0 {
-		if len(existing.Clusters) == 0 {
-			fmt.Println("its Empty")
-			existing.Clusters = temp.Clusters
-		}
-		for _, i := range temp.Clusters {
-			for key, j := range existing.Clusters {
-				if i.Name == j.Name {
-					if i == j {
-						// Clusters with same name exist, deleting existing cluster and replace with the newly downloaded config
-						existing.Clusters = func(s []Clusters, i int) []Clusters {
-							s[i] = s[len(s)-1]
-							return s[:len(s)-1]
-						}(existing.Clusters, key)
-					} else {
-						fmt.Printf("A different object named %v already exists in %v", i.Name, "Clusters")
-					}
-				}
-			}
-			existing.Clusters = append(existing.Clusters, i)
-		}
-	}
+	return mapOfAKSCluster, err
 
 }
 
-func mergeContexts(temp *KubernertesConfig, existing *KubernertesConfig) {
+func makeMapOfCluster(rg string, version string) AksCluster {
 
-	if len(temp.Contexts) != 0 {
-		if len(existing.Contexts) == 0 {
-			existing.Contexts = temp.Contexts
-		}
-		for _, i := range temp.Contexts {
-			for key, j := range existing.Contexts {
-				if i.Name == j.Name {
-					if i == j {
-						// Context with same name exist, deleting existing context and replace with the newly downloaded config
-						existing.Contexts = func(s []Contexts, i int) []Contexts {
-							s[i] = s[len(s)-1]
-							return s[:len(s)-1]
-						}(existing.Contexts, key)
-					} else {
-						fmt.Printf("A different object named %v already exists in %v", i.Name, "Context")
-					}
-				}
-			}
-			existing.Contexts = append(existing.Contexts, i)
-		}
-	}
-
-}
-
-func mergeUsers(temp *KubernertesConfig, existing *KubernertesConfig) {
-
-	if len(temp.Users) != 0 {
-		if len(existing.Users) == 0 {
-			existing.Users = temp.Users
-		}
-		for _, i := range temp.Users {
-			for key, j := range existing.Users {
-				if i.Name == j.Name {
-					if i == j {
-						// User with same name exist, deleting existing user and replace with the newly downloaded config
-						existing.Users = func(s []Users, i int) []Users {
-							s[i] = s[len(s)-1]
-							return s[:len(s)-1]
-						}(existing.Users, key)
-					} else {
-						fmt.Printf("A different object named %v already exists in %v", i.Name, "User")
-					}
-				}
-			}
-			existing.Users = append(existing.Users, i)
-		}
+	return AksCluster{
+		ResourceGroup: rg,
+		K8sVersion:    version,
 	}
 }
 
@@ -242,36 +98,9 @@ func ManageConfig(config string, path string) error {
 		fmt.Println(err)
 	}
 
-	// Merge configuration of temporary file with existing kubernetes configuration (default: ~/.kube/config)
-	configFile, err := mergeConfig(tempFile, path)
-	err = ioutil.WriteFile(path, configFile, 0600)
-	if err != nil {
-		fmt.Println(err)
+	rules := clientcmd.ClientConfigLoadingRules{
+		Precedence: []string{clientcmd.RecommendedHomeFile, tempFile},
 	}
 
 	return err
-}
-
-// ListAKS returns list of AKS clusters in resource group
-func (a *AksCluster) ListAKS(sess *AzureSession) (map[string]AksCluster, error) {
-
-	mapOfAKSCluster := make(map[string]AksCluster)
-	var err error
-	crClient := container.NewManagedClustersClient(sess.SubscriptionID)
-	crClient.Authorizer = sess.Authorizer
-
-	for list, err := crClient.ListComplete(context.Background()); list.NotDone(); err = list.Next() {
-		if err != nil {
-			return mapOfAKSCluster, fmt.Errorf("error get the list of aks clusters: %v", err)
-		}
-
-		clusterName := *list.Value().Name
-		rg := strings.Split(*list.Value().NodeResourceGroup, "_")[1]
-		version := *list.Value().KubernetesVersion
-
-		mapOfAKSCluster[clusterName] = makeMapOfCluster(rg, version)
-
-	}
-	return mapOfAKSCluster, err
-
 }

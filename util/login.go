@@ -20,14 +20,10 @@ type AzureSession struct {
 func getAzureAuth() (*map[string]interface{}, error) {
 
 	defaultConfig, _ := homedir.Expand("~/.kube/azure.auth")
-
 	if _, err := os.Stat(os.Getenv("AZURE_AUTH_LOCATION")); os.IsNotExist(err) {
-
 		if _, err = os.Stat(defaultConfig); os.IsNotExist(err) {
-
 			return nil, fmt.Errorf("cannot get auth file: %v", err)
 		}
-
 		os.Setenv("AZURE_AUTH_LOCATION", defaultConfig)
 
 	}
