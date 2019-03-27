@@ -12,7 +12,10 @@ NAME		VERSION		RESOURCE GROUP
 foo-AKS		1.11.5		 fooRG
 bar-AKS		1.11.5		 barRG
 
-$ kubectl aks get -n foo-AKS
+$ kubectl aks get foo-AKS
 Merged "foo-AKS" as current context in /Users/*****/.kube/config
+
+$ kubectl aks get foo-AKS -p /home/foo/config
+Merged "foo-AKS" as current context in /home/foo/config
 
 ```

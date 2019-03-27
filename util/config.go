@@ -81,7 +81,6 @@ func MergeConfig(config []byte, path string) error {
 	if err != nil {
 		return err
 	}
-
 	// Delete temp file
 	defer os.Remove(file.Name())
 
@@ -97,7 +96,6 @@ func MergeConfig(config []byte, path string) error {
 	if err != nil {
 		return err
 	}
-
 	mergedConfig, err := encodeConfig([]string{DefaultKubeConfig, tempFile})
 	if err != nil {
 		return err
@@ -110,7 +108,6 @@ func MergeConfig(config []byte, path string) error {
 	if err != nil {
 		return err
 	}
-
 	return err
 }
 
@@ -125,6 +122,5 @@ func encodeConfig(precedence []string) (*clientcmdapi.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return config, err
 }

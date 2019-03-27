@@ -54,7 +54,6 @@ func NewCmdAksGet(streams genericclioptions.IOStreams) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&path, "path", "p", util.DefaultKubeConfig, "Path to write Kubeconfig")
-
 	return cmd
 }
 
@@ -73,9 +72,7 @@ func (o *AksGetOptions) Complete(cmd *cobra.Command, args []string) error {
 	o.azureSession, err = util.NewSessionFromFile()
 	if err != nil {
 		return fmt.Errorf("error authenticating with azure,Error: %v", err)
-
 	}
-
 	return nil
 }
 
@@ -83,7 +80,6 @@ func (o *AksGetOptions) Complete(cmd *cobra.Command, args []string) error {
 func (o *AksGetOptions) Get() error {
 
 	config, err := util.GetAKS(o.azureSession, o.userSpecifiedCluster)
-
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes configuration for cluster %v,Error: %v", o.userSpecifiedCluster, err)
 	}

@@ -10,15 +10,14 @@ REPOPATH ?= $(ORG)/$(OWNER)/kubectl-aks
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 
-$(shell mkdir -p ./out)
+$(shell mkdir -p ./release)
 
 .PHONY: build
-build: out/kubectl-aks-$(GOOS)-$(GOARCH)
+build: release/kubectl-aks-$(GOOS)-$(GOARCH)
 
 out/kubectl-aks-%-$(GOARCH): 
 	CGO_ENABLED=0 GOOS=$* GOARCH=$(GOARCH) go build \
-	  -ldflags="-s -w -X $(REPOPATH)/pkg/version.version=$(VERSION)" \
-	  -a -o $@ .
+	  -a -o $@ cmd/kubectl-aks.go
 
 .PHONY: dep 
 dep:
@@ -26,4 +25,4 @@ dep:
 
 .PHONY: clean
 clean:
-	rm -rf out/
+	rm -rf release/
