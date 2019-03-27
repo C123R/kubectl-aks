@@ -15,7 +15,7 @@ $(shell mkdir -p ./release)
 .PHONY: build
 build: release/kubectl-aks-$(GOOS)-$(GOARCH)
 
-out/kubectl-aks-%-$(GOARCH): 
+release/kubectl-aks-%-$(GOARCH): 
 	CGO_ENABLED=0 GOOS=$* GOARCH=$(GOARCH) go build \
 	  -a -o $@ cmd/kubectl-aks.go
 
