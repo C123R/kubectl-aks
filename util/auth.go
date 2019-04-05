@@ -35,7 +35,7 @@ func NewSessionFromFile() (*AzureSession, error) {
 
 	settings, err := getAzureAuth()
 	if err != nil {
-		return nil, fmt.Errorf("Error getting environment variables from Azure CLI home, Error :%v", err)
+		return nil, fmt.Errorf("Error getting environment variables from Azure Auth file, Error :%v", err)
 	}
 	authorizer, err := auth.NewAuthorizerFromCLI()
 	sess = AzureSession{

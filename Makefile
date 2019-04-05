@@ -24,5 +24,5 @@ dep:
 	dep ensure
 
 .PHONY: clean
-clean:
-	rm -rf release/
+# clean:
+# 	rm -rf release/
