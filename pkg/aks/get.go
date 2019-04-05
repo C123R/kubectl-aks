@@ -11,7 +11,7 @@ var (
 	getAksLong = `The AKS plugin's get subcommand download the kubernetes credentials from Azure 
 and merge it with the default ~/.kube/config.`
 	getAksExample = `  # Get the credentials AKS Cluster from current Azure Subscription.
-  kubectl aks get -n foo-cluster
+  kubectl aks get foo-cluster
 	`
 	path string
 )
@@ -61,10 +61,13 @@ func NewCmdAksGet(streams genericclioptions.IOStreams) *cobra.Command {
 func (o *AksGetOptions) Complete(cmd *cobra.Command, args []string) error {
 
 	o.args = args
+
 	var err error
 	// validating whether all required arguments are provided
 	if len(o.args) == 0 {
-		return cmd.Usage()
+		cmd.Usage()
+		fmt.Println()
+		return fmt.Errorf("You must specify the name of AKS cluster. Use \"kubectl aks list\" to get the list of AKS clusters")
 	}
 	if len(o.args) > 0 {
 		o.userSpecifiedCluster = args[0]
