@@ -1,25 +1,28 @@
 language: go
-os: linux
-sudo: required
-services:
-- docker
+
 go:
-- 1.11.x
-go_import_path: github.com/C123R/kubectl-aks
+  - "1.12"
+
+env:
+  - GO111MODULE=on
+
 before_install:
-- go get -u github.com/golang/dep/cmd/dep
+  - sudo apt-get update
+  - sudo apt-get install -y libpcap-dev gcc
+
 script:
-- make dep
-- make
-before_deploy:            
-    - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
-    - git tag $TRAVIS_TAG
+  - make all
+
+before_deploy:
+  - make package
+  - git tag "$(cat VERSION)"
+
 deploy:
   provider: releases
-  api_key:
-    secure: PVloJ4QYpgw3yZ/Lg3fv0J1codJgbKGxAKbUUQGmiT3NgslQTX3jcXahjIS0qQycF3Zx9jpY9aC2PHAMcVYVG+mDmON6RwLzCICsDeWTPshHRj1VPAFA4TIcO59aleJEFA75UOlr+3WUGkl6J0jIX9ybBdzFKu6I6FL31WhJF9M/ibKi7Uxsi49MmQM6p2agf0OEPWJ8d8gpED9SFG0B68xwCYwlbc7Xk2vpl25STrgxc9Sjq7AozOlmSvzswbI6JQ6RC/rUcF9MWc8YspP/xcskoowJ5/RZb+3C6+ySQVw5SWofvbCq/FjJYXRLHpB3VAzFWYrhF+Byr6tvbRoPMJ2D4HQpr4zT/oHofppOr17BPTV4xLNRjUOorQqHTiTK8dUaufxWQwXC7FYXm0GyzPvoFU+hLIGQTKKtZb47kTefwDkjSCXhoeE/RIieMRvfNQ1OxD2nGX3NGbFHB7oARACPa3M62lfCqs6rdCWcE/KNOyi8pF8uQN6rE1ErCSbimNRfYWmK7G8Pb7fp4Y3Dhe0Sa/swhMN7wOwR+Coh/nXU6S0AOO8neAFJ8PsqMa22J4M+jX4p0Adkwr7WyXiHYj3719bN/sF4PRE5WdSIF/B4lnCyKq8co+dfXN0ERAQBCBbX80P0Oq3gEIMkQff5y9lmq4Ehvyt0nrMTFd1qsUI=
-  file: release/*
+  api_key: $GITHUB_OAUTH_TOKEN
+  file:
+    - kubectl-aks.zip
   skip_cleanup: true
   on:
-    repo: C123R/kubectl-aks
+    tag: true
     branch: master
