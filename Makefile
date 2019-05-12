@@ -1,28 +1,23 @@
-VERSION_MAJOR ?= 0
-VERSION_MINOR ?= 1
-VERSION_BUILD ?= 0
-VERSION ?= v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_BUILD)
+UNAME := $(shell uname)
 
-ORG := github.com
-OWNER := C123R
-REPOPATH ?= $(ORG)/$(OWNER)/kubectl-aks
+ifeq ($(UNAME), Darwin)
+PLUGIN_NAME=kubectl-aks-darwin
+endif
 
-GOOS ?= $(shell go env GOOS)
-GOARCH ?= $(shell go env GOARCH)
+ifeq ($(UNAME), Linux)
+PLUGIN_NAME=kubectl-aks
+endif
 
-$(shell mkdir -p ./release)
+linux:
+	GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o kubectl-aks cmd/kubectl-aks.go
 
-.PHONY: build
-build: release/kubectl-aks-$(GOOS)-$(GOARCH)
+windows:
+	GO111MODULE=on GOOS=windows GOARCH=amd64 go build -o kubectl-aks-windows cmd/kubectl-aks.go
 
-release/kubectl-aks-%-$(GOARCH): 
-	CGO_ENABLED=0 GOOS=$* GOARCH=$(GOARCH) go build \
-	  -a -o $@ cmd/kubectl-aks.go
+darwin:
+	GO111MODULE=on GOOS=darwin GOARCH=amd64 go build -o kubectl-aks-darwin cmd/kubectl-aks.go
 
-.PHONY: dep 
-dep:
-	dep ensure
+all: linux windows darwin
 
-.PHONY: clean
-# clean:
-# 	rm -rf release/
+package:
+	zip kubectl-aks.zip kubectl-aks kubectl-aks-windows kubectl-aks-darwin Makefile

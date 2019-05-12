@@ -19,7 +19,7 @@ and merge it with the default ~/.kube/config.`
 // AksGetOptions provides information required to get the AKS context from Azure.
 type AksGetOptions struct {
 	userSpecifiedCluster string
-	azureSession         *util.AzureSession
+	aksClient            util.AKSClient
 	genericclioptions.IOStreams
 	args []string
 }
@@ -72,7 +72,7 @@ func (o *AksGetOptions) Complete(cmd *cobra.Command, args []string) error {
 	if len(o.args) > 0 {
 		o.userSpecifiedCluster = args[0]
 	}
-	o.azureSession, err = util.NewSessionFromFile()
+	o.aksClient, err = util.NewAKSClient()
 	if err != nil {
 		return fmt.Errorf("error authenticating with azure,Error: %v", err)
 	}
@@ -82,9 +82,9 @@ func (o *AksGetOptions) Complete(cmd *cobra.Command, args []string) error {
 // Get Kubernetes credentials for AKS cluster
 func (o *AksGetOptions) Get() error {
 
-	config, err := util.GetAKS(o.azureSession, o.userSpecifiedCluster)
+	config, err := o.aksClient.GetCredentials(o.userSpecifiedCluster)
 	if err != nil {
-		return fmt.Errorf("error getting kubernetes configuration for cluster %v,Error: %v", o.userSpecifiedCluster, err)
+		return err
 	}
 
 	err = util.MergeConfig(config, path)

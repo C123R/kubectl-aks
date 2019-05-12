@@ -9,17 +9,19 @@ var (
 	aksLong = `The AKS plugin is use to get the credentials of the Kubernetes cluster using kubectl CLI.`
 )
 
-// NewCmdAks provides a cobra command wrapping NamespaceOptions
+// NewCmdAks provides a cobra command wrapping AksOptions
 func NewCmdAks(streams genericclioptions.IOStreams) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:          "aks SUBCOMMAND",
+		Use:          "aks",
 		Short:        "Manage Kubernetes Clusters from Kubectl.",
 		Long:         aksLong,
 		SilenceUsage: true,
-		//RunE:         Help(),
 	}
 	cmd.AddCommand(NewCmdAksGet(streams))
 	cmd.AddCommand(NewCmdAksList(streams))
+	cmd.AddCommand(NewCmdAksScale(streams))
+	cmd.AddCommand(NewCmdAksUpgrade(streams))
+	cmd.AddCommand(NewCmdAksGetUpgrades(streams))
 	return cmd
 }

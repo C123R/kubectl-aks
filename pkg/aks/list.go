@@ -38,18 +38,17 @@ func NewCmdAksList(streams genericclioptions.IOStreams) *cobra.Command {
 
 func getList() error {
 
-	sess, err := util.NewSessionFromFile()
+	aksClient, err := util.NewAKSClient()
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
-	var akslist util.AksCluster
-	aksList, err := akslist.ListAKS(sess)
+	aksList, err := aksClient.ListAKS()
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
-	fmt.Printf("%v\t\t\t%v\t\t%v\n", "NAME", "VERSION", "RESOURCE GROUP")
+	fmt.Printf("%v\t\t\t%v\t\t%v\t\t%v\n", "NAME", "VERSION", "NODES", "RESOURCE GROUP")
 	for key, value := range aksList {
-		fmt.Fprintf(os.Stdout, "%v\t\t%v\t\t%v\n", key, value.K8sVersion, value.ResourceGroup)
+		fmt.Fprintf(os.Stdout, "%v\t\t%v\t\t%v\t\t%v\n", key, value.K8sVersion, value.Nodes, value.ResourceGroup)
 	}
 
 	return nil
