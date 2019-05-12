@@ -12,8 +12,7 @@ before_install:
 
 after_success:
   test -n "$TRAVIS_TAG" && curl -s https://raw.githubusercontent.com/goreleaser/get/master/latest | bash
-
-
+  
 # calls goreleaser
 deploy:
 - provider: script
