@@ -15,11 +15,13 @@ after_success:
 # calls goreleaser
 deploy:
 - provider: script
-  api_key: $GITHUB_TOKEN
+  github_token: $GITHUB_TOKEN
   skip_cleanup: true
   script: curl -sL https://git.io/goreleaser | bash
-  all_branches: true
   draft: true
-  # on:
-  #   tags: true
-  #   condition: $TRAVIS_OS_NAME = linux
+  on:
+     tags: true
+  condition: $TRAVIS_OS_NAME = linux
+
+notifications:
+  email: false
