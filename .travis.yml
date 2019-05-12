@@ -9,6 +9,9 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y libpcap-dev gcc
 
+install:
+  - go mod download
+
 after_success:
   test -n "$TRAVIS_TAG" && curl -s https://raw.githubusercontent.com/goreleaser/get/master/latest | bash
 
