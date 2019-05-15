@@ -4,11 +4,11 @@
 
 This is a kubectl plugin to manage Azure Kubernetes Service. `kubectl-aks` support following operation:
 
-- Get list of AKS clusters.
-- Get credentials for kubernetes clusters.
+- List AKS cluster from the current Azure Subscrption.
+- Get the upgrade versions available for a managed Kubernetes cluster.
 - Get available upgardes for the cluster.
-- Scale up kubernetes nodes.
-- Upgrade kubernetes version.
+- Upgrade a managed Kubernetes cluster to a newer version.
+- Upgrade a managed Kubernetes cluster to a newer version.
 
 In order to authenticate against Azure API we need Azure Service Principal. To create a service principal, you can use Azure CLI as shown below:
 
