@@ -2,12 +2,13 @@ package util
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/mitchellh/go-homedir"
-	"os"
 )
 
 // AKSClient is an object representing session for subscription
@@ -23,7 +24,7 @@ func getAzureAuth() (auth.FileSettings, error) {
 	defaultConfig, _ := homedir.Expand("~/.kube/azure.auth")
 	if _, err := os.Stat(os.Getenv("AZURE_AUTH_LOCATION")); os.IsNotExist(err) {
 		if _, err = os.Stat(defaultConfig); os.IsNotExist(err) {
-			return s, fmt.Errorf("cannot get auth file: %v", err)
+			return s, fmt.Errorf("Cannot get the Azure Auth: %v", err)
 		}
 		os.Setenv("AZURE_AUTH_LOCATION", defaultConfig)
 	}
@@ -37,7 +38,7 @@ func NewAKSClient() (AKSClient, error) {
 
 	settings, err := getAzureAuth()
 	if err != nil {
-		return aksClient, fmt.Errorf("Error getting environment variables from Azure Auth file, Error :%v", err)
+		return aksClient, err
 	}
 	authorizer, err := auth.NewAuthorizerFromCLI()
 	crService := containerservice.NewManagedClustersClient(settings.GetSubscriptionID())

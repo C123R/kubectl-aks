@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/C123R/kubectl-aks/util"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"os"
 )
 
 var (
@@ -28,7 +29,7 @@ func NewCmdAksList(streams genericclioptions.IOStreams) *cobra.Command {
 				return fmt.Errorf("list subcommend does not support any arguments")
 			}
 			if err := getList(); err != nil {
-				return fmt.Errorf("error getting list of AKS Clusters,Error: %v", err)
+				return err
 			}
 			return nil
 		},
@@ -40,7 +41,7 @@ func getList() error {
 
 	aksClient, err := util.NewAKSClient()
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return err
 	}
 	aksList, err := aksClient.ListAKS()
 	if err != nil {

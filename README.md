@@ -12,7 +12,7 @@ This is a kubectl plugin to manage Azure Kubernetes Service. `kubectl-aks` suppo
 
 In order to authenticate against Azure API we need Azure Service Principal. To create a service principal, you can use Azure CLI as shown below:
 
-Note: Make sure you have stored azure.auth file in kubectl home directory as mentioned above.
+Note: Make sure you have stored azure.auth file in kubectl home directory as mentioned above or export ENV variable `AZURE_AUTH_LOCATION` with the path of the azure.auth file.
 
 ```bash
 $ az ad sp create-for-rbac —sdk-auth > ~/.kube/azure.auth
