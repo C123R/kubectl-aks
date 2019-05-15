@@ -20,13 +20,9 @@ deploy:
   github_token: $GITHUB_TOKEN
   skip_cleanup: true
   script: curl -sL https://git.io/goreleaser | bash
-  draft: true
-  branches:
-    only:
-    - master
+  condition: $TRAVIS_BRANCH == "master" 
   on:
      tags: true
-  condition: $TRAVIS_OS_NAME = linux
 
 notifications:
   email: false
