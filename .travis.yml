@@ -21,6 +21,9 @@ deploy:
   skip_cleanup: true
   script: curl -sL https://git.io/goreleaser | bash
   draft: true
+  branches:
+    only:
+    - master
   on:
      tags: true
   condition: $TRAVIS_OS_NAME = linux
