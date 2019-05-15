@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+
 	"github.com/C123R/kubectl-aks/util"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -83,14 +84,10 @@ func (o *AksUpgradeOptions) Complete(cmd *cobra.Command, args []string) error {
 func (o *AksUpgradeOptions) Upgrade() error {
 
 	fmt.Println("Kubernetes may be unavailable during cluster upgrades.")
-	if util.Confirmation() {
-		err := o.aksClient.UpgradeAKS(context.Background(), o.userSpecifiedCluster, o.version)
-		if err != nil {
-			return err
-		}
-		return nil
+	err := o.aksClient.UpgradeAKS(context.Background(), o.userSpecifiedCluster, o.version)
+	if err != nil {
+		return err
 	}
-	fmt.Println("Opeartion Cancelled")
 	return nil
 
 }

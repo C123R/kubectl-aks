@@ -3,14 +3,15 @@ package util
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
-	"github.com/briandowns/spinner"
 	"io/ioutil"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/briandowns/spinner"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // AksCluster is an object representing details for AKS cluster
@@ -63,28 +64,29 @@ func (aksClient AKSClient) UpgradeAKS(ctx context.Context, name string, k8sVersi
 		return nil
 	} else if !stringSliceContains(k8sUpgradeVersions, k8sVersion) {
 		return fmt.Errorf("Upgrade with version %v is either not allowed or not available for the %v", k8sVersion, name)
-	}
+	} else if Confirmation() {
 
-	*cluster.AKSInstance.KubernetesVersion = k8sVersion
+		*cluster.AKSInstance.KubernetesVersion = k8sVersion
+		initalMsg := fmt.Sprintf("Upgrading %v to Kubernetes version %v ", name, k8sVersion)
+		finalMSG := fmt.Sprintf("Successfully upgraded %v to Kubernetes version %v.\n", name, k8sVersion)
 
-	initalMsg := fmt.Sprintf("Upgrading %v to Kubernetes version %v ", name, k8sVersion)
-	finalMSG := fmt.Sprintf("Successfully upgraded %v to Kubernetes version %v.\n", name, k8sVersion)
+		s := getSpinner(initalMsg, finalMSG)
 
-	s := getSpinner(initalMsg, finalMSG)
+		s.Start()
 
-	s.Start()
+		err = aksClient.CreateOrUpdate(context.Background(), name, cluster)
+		if err != nil {
 
-	err = aksClient.CreateOrUpdate(context.Background(), name, cluster)
-	if err != nil {
-
-		s.FinalMSG = err.Error()
+			s.FinalMSG = err.Error()
+			s.Stop()
+			fmt.Println()
+			return err
+		}
 		s.Stop()
-		fmt.Println()
-		return err
+
+	} else {
+		fmt.Println("Opeartion Cancelled")
 	}
-
-	s.Stop()
-
 	return nil
 
 }
@@ -99,30 +101,30 @@ func (aksClient AKSClient) ScaleAKS(ctx context.Context, name string, count int3
 	if count == cluster.Nodes {
 		fmt.Printf("INFO: %v is currently running with %v nodes\n\n", name, count)
 		return nil
-	}
-	for _, agentPoolProfile := range *cluster.AKSInstance.AgentPoolProfiles {
-		*agentPoolProfile.Count = count
-	}
+	} else if Confirmation() {
+		for _, agentPoolProfile := range *cluster.AKSInstance.AgentPoolProfiles {
+			*agentPoolProfile.Count = count
+		}
 
-	initalMsg := fmt.Sprintf("Scaling %v to %d nodes ", name, count)
-	finalMSG := fmt.Sprintf("Successfully scaled %v to %d nodes.\n", name, count)
+		initalMsg := fmt.Sprintf("Scaling %v to %d nodes ", name, count)
+		finalMSG := fmt.Sprintf("Successfully scaled %v to %d nodes.\n", name, count)
 
-	s := getSpinner(initalMsg, finalMSG)
-	s.Start()
+		s := getSpinner(initalMsg, finalMSG)
+		s.Start()
 
-	// Making a request to update the AKS Cluster
-	err = aksClient.CreateOrUpdate(context.Background(), name, cluster)
-	if err != nil {
-		s.FinalMSG = err.Error()
+		// Making a request to update the AKS Cluster
+		err = aksClient.CreateOrUpdate(context.Background(), name, cluster)
+		if err != nil {
+			s.FinalMSG = err.Error()
+			s.Stop()
+			fmt.Println()
+			return err
+		}
 		s.Stop()
-		fmt.Println()
-		return err
+	} else {
+		fmt.Println("Opeartion Cancelled")
 	}
-
-	s.Stop()
-
 	return nil
-
 }
 
 // CreateOrUpdate creates or updates a managed cluster with the specified configuration for agents and Kubernetes
@@ -168,15 +170,15 @@ func (aksClient AKSClient) GetUpgrades(name string) ([]string, string, error) {
 	if err != nil {
 		return k8sUpgradeVersions, currentVersion, err
 	}
+
 	instance, err := aksClient.ContainerService.GetUpgradeProfile(context.Background(), cluster.ResourceGroup, name)
 	if err != nil {
 		return k8sUpgradeVersions, currentVersion, fmt.Errorf("unable to get the available upgrades for (%v), Error: %v", name, err)
+	} else if instance.ControlPlaneProfile.Upgrades == nil {
+		return k8sUpgradeVersions, *instance.ControlPlaneProfile.KubernetesVersion, nil
 	}
 
-	k8sUpgradeVersions = *instance.ControlPlaneProfile.Upgrades
-	currentVersion = *instance.ControlPlaneProfile.KubernetesVersion
-
-	return k8sUpgradeVersions, currentVersion, nil
+	return *instance.ControlPlaneProfile.Upgrades, *instance.ControlPlaneProfile.KubernetesVersion, nil
 }
 
 // ListAKS returns list of AKS clusters in resource group
@@ -305,7 +307,6 @@ func stringSliceContains(s []string, v string) bool {
 func Confirmation() bool {
 
 	var input string
-
 	fmt.Printf("Do you want to continue with this operation? [y|n]: ")
 	_, err := fmt.Scanln(&input)
 	if err != nil {

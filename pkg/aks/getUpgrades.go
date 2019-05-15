@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/C123R/kubectl-aks/util"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -80,7 +81,7 @@ func (o *AksGetUpgradesOptions) GetUpgrades() error {
 		return err
 	}
 	if len(k8sUpgradeVersions) == 0 {
-		fmt.Printf("Currently there are no new upgrades avaialble, %v is  upto date", o.userSpecifiedCluster)
+		fmt.Printf("Currently there are no new upgrades avaialble, %v is upto date [%v].\n", o.userSpecifiedCluster, currentVersion)
 	} else {
 		fmt.Printf("Current Version: %v\n\n", currentVersion)
 		fmt.Printf("List of avaliable upgrades for %v:\n", o.userSpecifiedCluster)

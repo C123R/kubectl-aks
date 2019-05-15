@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+
 	"github.com/C123R/kubectl-aks/util"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -83,13 +84,9 @@ func (o *AksScaleOptions) Complete(cmd *cobra.Command, args []string) error {
 // Scale Kubernetes credentials for AKS cluster
 func (o *AksScaleOptions) Scale() error {
 
-	if util.Confirmation() {
-		err := o.aksClient.ScaleAKS(context.Background(), o.userSpecifiedCluster, o.count)
-		if err != nil {
-			return err
-		}
-		return nil
+	err := o.aksClient.ScaleAKS(context.Background(), o.userSpecifiedCluster, o.count)
+	if err != nil {
+		return err
 	}
-	fmt.Println("Opeartion Cancelled")
 	return nil
 }
