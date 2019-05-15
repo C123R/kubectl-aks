@@ -1,0 +1,11 @@
+name: "aks"
+shortDesc: "Manage AKS clusters"
+longDesc: >
+  Kubectl aks manages AKS clusters. `kubectl-aks` support following operation:
+  - List AKS cluster from the current Azure Subscrption.
+  - Get the upgrade versions available for a managed Kubernetes cluster.
+  - Get available upgardes for the cluster.
+  - Upgrade a managed Kubernetes cluster to a newer version.
+  - Upgrade a managed Kubernetes cluster to a newer version.
+example: "kubectl aks list"
+command: "./kubectl-aks"

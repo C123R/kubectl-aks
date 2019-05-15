@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	aksLong = `The AKS plugin is use to get the credentials of the Kubernetes cluster using kubectl CLI.`
+	aksLong = `The AKS plugin manages AKS Clusters.`
 )
 
 // NewCmdAks provides a cobra command wrapping AksOptions
