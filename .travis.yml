@@ -13,17 +13,18 @@ install:
   - go mod download
 
 after_success:
-  test -n "$TRAVIS_TAG" && curl -s https://raw.githubusercontent.com/goreleaser/get/master/latest | bash
+  # Set up git user name and tag this commit
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "Travis CI"
+  - export TRAVIS_TAG=${TRAVIS_TAG:-$(cat VERSION)}
+  - git tag $TRAVIS_TAG
+  - test -n "$TRAVIS_TAG" && curl -s https://raw.githubusercontent.com/goreleaser/get/master/latest | bash
 
 deploy:
 - provider: script
   github_token: $GITHUB_TOKEN
   skip_cleanup: true
   script: curl -sL https://git.io/goreleaser | bash
-  draft: true
-  on:
-     tags: true
-  condition: $TRAVIS_OS_NAME = linux
 
 notifications:
   email: false
