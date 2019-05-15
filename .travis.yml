@@ -17,7 +17,7 @@ after_success:
   - git config --global user.email "travis@travis-ci.org"
   - git config --global user.name "Travis CI"
   - export TRAVIS_TAG=${TRAVIS_TAG:-$(cat VERSION)}
-  - git tag -a $TRAVIS_TAG $(git log --format=%h -1) "Generated tag from Travis CI based on VERSION file"
+  - git tag -a $TRAVIS_TAG $(git log --format=%h -1) -m "Generated tag from Travis CI based on VERSION file"
   - echo $TRAVIS_TAG
   - test -n "$TRAVIS_TAG" && curl -s https://raw.githubusercontent.com/goreleaser/get/master/latest | bash
 
