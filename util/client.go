@@ -40,7 +40,7 @@ func NewAKSClient() (AKSClient, error) {
 	if err != nil {
 		return aksClient, err
 	}
-	authorizer, err := auth.NewAuthorizerFromCLI()
+	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	crService := containerservice.NewManagedClustersClient(settings.GetSubscriptionID())
 	crService.Authorizer = authorizer
 
