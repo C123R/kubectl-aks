@@ -207,9 +207,12 @@ func (aksClient AKSClient) ListAKS() (map[string]AksCluster, error) {
 // Retunrs Object of ValidAKSCluster(empty) with error, if no such AKS Cluster in Azure or AKS Cluster is in Failed State
 func (aksClient AKSClient) validateAKSCluster(name string) (ValidAKSCluster, error) {
 
-	aksList, err := aksClient.ListAKS()
-
 	var validCluster ValidAKSCluster
+
+	aksList, err := aksClient.ListAKS()
+	if err != nil {
+		return validCluster, err
+	}
 
 	if _, ok := aksList[name]; !ok {
 		return validCluster, fmt.Errorf("Invalid Cluster name (%v), use `kubectl aks list` to get the correct list", name)
@@ -256,7 +259,11 @@ func MergeConfig(config []byte, path string) error {
 	tempFile := file.Name()
 	// Write Kubernetes configuration for requested cluster in temporary file
 	err = ioutil.WriteFile(tempFile, config, 0600)
-	file.Sync()
+	if err != nil {
+		return err
+	}
+
+	err = file.Sync()
 	if err != nil {
 		return err
 	}
